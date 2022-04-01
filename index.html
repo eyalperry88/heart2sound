@@ -1,0 +1,89 @@
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="http://unpkg.com/tone"></script>
+<script>
+  var socket = io();
+  var merge;
+  var leftEar;
+  var rightEar;
+  var lastBeat = [0, 0];
+  var bpms = [0, 0];
+  var alpha = 0.75;
+  socket.on('data', function (data) {
+    var userId = parseInt(data);
+
+    var currentBeat = Date.now();
+    var interval = currentBeat - lastBeat[userId];
+    lastBeat[userId] = currentBeat;
+    var bpm = 60000 / interval;
+    console.log(userId, Math.round(bpm));
+
+    if (bpm >= 40 && bpm <= 160) {
+      if (bpms[userId] == 0) {
+        bpms[userId] = bpm;
+      } else {
+        // noise filtering
+        bpms[userId] = Math.round(alpha * bpms[userId] + (1 - alpha) * bpm);
+      }
+    }
+
+    $("#bpm" + userId.toString()).html(parseInt(bpms[userId]));
+    $("#user" + userId.toString()).css("background-color", "purple");
+    setTimeout(function() {
+      $("#user" + userId.toString()).css("background-color", "white");
+    }, 200);
+  });
+
+  function playNote() {
+    merge = new Tone.Merge().toDestination();
+
+    leftEar = new Tone.Oscillator();
+    rightEar = new Tone.Oscillator();
+
+    leftEar.frequency.value = 400;
+    rightEar.frequency.value = 500;
+
+    leftEar.connect(merge, 0, 0);
+    rightEar.connect(merge, 0, 1);
+
+    leftEar.start();
+    rightEar.start();
+  }
+
+</script>
+<style>
+body {
+  width: 100%;
+  font-family: Arial;
+  padding:0;
+  margin:0;
+
+}
+
+td {
+  font-size: 64px;
+  padding: 32px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+  <table width=100% cellspacing=0 cellpadding=0 border=1>
+    <tr>
+      <td width=50% id="user0">Ishraki's BPM: <span id="bpm0">60</span></td>
+      <td width=50% id="user1">Jurgis' BPM: <span id="bpm1">70</span></td>
+    </tr>
+    <tr>
+      <td>Frequency: <span id="freq0">83</span>Hz</td>
+      <td>Frequency: <span id="freq1">633</span>Hz</td>
+    </tr>
+    <tr>
+      <td colspan=2 style="background-color:#b19cd9;">
+        <div>START</div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
