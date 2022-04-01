@@ -27,6 +27,11 @@
         // noise filtering
         bpms[userId] = Math.round(alpha * bpms[userId] + (1 - alpha) * bpm);
       }
+
+      changeFreq(userId, bpms[userId]);
+      playSound();
+
+
     }
 
     $("#bpm" + userId.toString()).html(parseInt(bpms[userId]));
@@ -36,21 +41,71 @@
     }, 200);
   });
 
-  function playNote() {
+  function changeFreq(userId, bpm) {
+    var frequency = parseInt(440 + bpm);
+
+    // TODO: calculate frequency according to bpm
+    if (bpm >= 40 && bpm <= 60) {
+
+    } else if (bpm >= 40 && bpm < 60) {
+
+    } else if (bpm >= 60 && bpm < 80) {
+
+    } else if (bpm >= 80 && bpm < 100) {
+
+    } else if (bpm >= 100 && bpm < 120) {
+
+    }
+
+    $("#freq" + userId.toString()).html(frequency);
+
+    if (!leftEar || !rightEar)
+      return;
+
+    if (userId == 0) {
+      leftEar.frequency.value = frequency;
+    } else {
+      rightEar.frequency.value = frequency;
+    }
+  }
+
+  function setupSound() {
     merge = new Tone.Merge().toDestination();
 
     leftEar = new Tone.Oscillator();
     rightEar = new Tone.Oscillator();
 
-    leftEar.frequency.value = 400;
     rightEar.frequency.value = 500;
 
     leftEar.connect(merge, 0, 0);
     rightEar.connect(merge, 0, 1);
 
-    leftEar.start();
-    rightEar.start();
+
   }
+
+  function playSound(userId) {
+    if (!leftEar || !rightEar)
+      return;
+
+    if (userId == 0) {
+      leftEar.start();
+      setTimeout(function() {
+        leftEar.stop();
+      }, 200);
+    } else {
+      rightEar.start();
+      setTimeout(function() {
+        rightEar.stop();
+      }, 200);
+    }
+  }
+
+$( document ).ready(function() {
+  $("#button").click(function() {
+    setupSound();
+    $("#button").html("READY");
+  })
+});
 
 </script>
 <style>
@@ -81,7 +136,7 @@ td {
     </tr>
     <tr>
       <td colspan=2 style="background-color:#b19cd9;">
-        <div>START</div>
+        <div id="button">START</div>
       </td>
     </tr>
   </table>
